@@ -1,13 +1,13 @@
 ahorcado
 LISTO---1-se necesita una base de datos de las posibles palabras a jugar.
-2-se necesita que el muñeco se genere segun el jugador falle una letra.
-3-se deben mostrar las letras que an sido usadas.
-4-Si se ha completado la palabra, el juego termina y Jugador gana.
+LISTO---2-se necesita que el muñeco se genere segun el jugador falle una letra.
+LISTO---3-se deben mostrar las letras que an sido usadas.
+LISTO---4-Si se ha completado la palabra, el juego termina y Jugador gana.
 5-tomar por igual las mayusculas y minusculas.
 LISTO---6-validar que solo se ingresen letras.
-7-tener funciones separa para cada cosa (validaciones, base de datos, el bucle principal, mostrar las palabras ya usadas,)
+LISTO---7-tener funciones separa para cada cosa (validaciones, base de datos, el bucle principal, mostrar las palabras ya usadas,)
 DESCARTADO----8- se peude tener un menu donde el usuario escoja el area sobre la cual se debe adivinar la palabra (aniamles,comidas,objetos,naturazleza, medios de transporte etc...)
-9-puede correr todo en un ciclo while que se ejecutara segun la longtitud de la palabra al llegar a 0 game over.
-10- se debe comprabar que la letra que el usuario ingrese este en la palabra a descubrir, ademas de saber si la letra ya fue usada o no, tambien la palbra tiene por ejemplo varias letras repetidas por ejemplo (caracas) si el usuario digita la a se descubrirarn las 3 a presentes (_a_a_a_)
+LISTO---9-puede correr todo en un ciclo while que se ejecutara segun la longtitud de la palabra al llegar a 0 game over.
+LISTO---10- se debe comprabar que la letra que el usuario ingrese este en la palabra a descubrir, ademas de saber si la letra ya fue usada o no, tambien la palbra tiene por ejemplo varias letras repetidas por ejemplo (caracas) si el usuario digita la a se descubrirarn las 3 a presentes (_a_a_a_)
 LISTO---11- en la base de datos no incluir palabras con acentos o caracteres especiales.
-12- Si se ha completado el dibujo del ahorcado, el juego termina y Jugador pierde.
+LISTO---12- Si se ha completado el dibujo del ahorcado, el juego termina y Jugador pierde.
