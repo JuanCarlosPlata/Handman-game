@@ -5,11 +5,9 @@ import random
 
 # Funcion para limpiar la pantalla
 def clear_screen():
-    # Si el sistema operativo es Windows
-    if name == 'nt':
+    if name == 'nt': # Si el sistema operativo es Windows
         _ = system('cls')
-    # Si el sistema operativo es Mac o Linux
-    else:
+    else: # Si el sistema operativo es Mac o Linux
         _ = system('clear')
 
 # Funcion para escribir letra por letra
@@ -20,39 +18,33 @@ def delay_print(s):
         sleep(0.02)  # Tiempo de espera estre cada letra
 
 # Funcion para validar que solo se ingresen letras en el input del usuario
-def validate_user_input_text(text):
+def validate_user_input_text(text): # text indica el mensaje que se mostrar junto con el input
     while True:
-        # text indica el mensaje que se mostrar junto con el input
         delay_print(text)
-        valor = str(input("\n=> "))
-        # Si lo ingresado es solo 1 letra y no es nada distinto a letras el programa continua de los contrario lanza un error y vuelve a preguntar
-        if len(valor) == 1 and valor.isalpha():
-            return valor
-        # Mostrar mensaje de error y volver a preguntar
-        delay_print(f"Invalid option\nPlease only enter 1 letter (A-Z)\n")
+        letter = str(input("\n=> "))
+        if len(letter) == 1 and letter.isalpha(): # Si lo ingresado es solo 1 letra y no es nada distinto a letras el programa continua de los contrario lanza un error y vuelve a preguntar
+            return letter
+        delay_print(f"Invalid option\nPlease only enter 1 letter (A-Z)\n") # Mostrar mensaje de error y volver a preguntar
         sleep(1)
         continue
 
 # Funcion que escoge una palabra de forma aleatoria del archivo palabras.txt
-def choice_word():
-    with open('palabras.txt') as f:
-        words = f.read().split(",")
-        my_pick = random.choice(words)
-    return my_pick
+def choice_word(level=1):
+    filenames = {
+        1: "easy_words.txt",
+        2: "medium_words.txt",
+        3: "hard_words.txt",
+    }
+    with open(filenames[level]) as f:
+        words = f.read().split("\n")
+        return random.choice(words)
 
 # Funcion que verifica si una letra ingresada por el usuario esta en la palabra seleccionada
-def check_user_input_letter(letra):
-    global secret_word
-    for i, caracter in enumerate(word):
-        if caracter == letra:
-            secret_word[i] = letra
-    return letra
-
-# variables de la palabra escogida y la palabra secreta
-word = choice_word()
-secret_word = ["_" for _ in range(len(word))]  # Utilizamos una lista de compresión para crear una lista de guiones bajos del tamaño de la palabra escogida
-used_words = set()  # Creamos un conjunto vacío para almacenar las letras usadas
-
+def check_user_input_letter(letter):
+    for i, character in enumerate(word):
+        if character == letter:
+            secret_word[i] = letter
+    return secret_word
 
 # Representaciones del stickman según las vidas restantes
 stickman="""
@@ -130,21 +122,30 @@ stickman="""
     |___           """
 
 # Función para comprobar si una letra ya ha sido utilizada
-def letter_already_used(letra):
+def letter_already_used(letter):
     global used_words
-    if letra in used_words:
+    if letter in used_words:
         return True
-    used_words.add(letra)
+    letter = letter
+    used_words.add(letter)
     return False
+
+# variables de la palabra escogida y la palabra secreta
+word = choice_word().lower()
+level = int(1)
+secret_word = ["_" for _ in range(len(word))]  # Utilizamos una lista de compresión para crear una lista de guiones bajos del tamaño de la palabra escogida
+used_words = set()  # Creamos un conjunto vacío para almacenar las letras usadas
 
 # Nucleo del juego
 def run():
-    global used_words
+    global level,used_words,secret_word,word
     lifes = 8
+    delay_print("Welcome to Hangman!\n")
+    sleep(1)
     while lifes > 0:
         print(stickman[(8-lifes)])
         print("".join(secret_word))  # Unimos los caracteres de la lista secreta en una sola cadena para imprimir
-        print("Used letters:", ", ".join(sorted(used_words)))  # Imprimimos las letras usadas ordenadas alfabéticamente
+        print("Used letters:", "-".join(sorted(used_words)))  # Imprimimos las letras usadas ordenadas alfabéticamente
         valid_word = validate_user_input_text("Please enter one letter (A-Z)")
         if letter_already_used(valid_word):
             delay_print("You've already used that letter\n")
@@ -160,11 +161,21 @@ def run():
             lifes -= 1
         clear_screen()
         if "_" not in secret_word:
-            delay_print("You win!\n")
+            delay_print(f"You Win! The word was {word}\n")
             sleep(1)
-            break
-    else:
+            level += 1
+            if level == 4:
+                delay_print("Congratulations you are incredible!!!\n")
+                break
+            word = choice_word(level).lower()
+            secret_word = ["_" for _ in range(len(word))]
+            used_words.clear()
+            lifes = 8
+            delay_print(f"\nNext word (level {level})\n")
+            sleep(1)
+    if lifes == 0:
         delay_print(f"You lose! The word was {word}\n")
+        sleep(1)
 
 if __name__ == "__main__":
     run()
