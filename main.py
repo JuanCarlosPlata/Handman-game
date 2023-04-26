@@ -2,6 +2,7 @@ from time import sleep
 import sys
 from os import system, name
 import random
+from stickman import stickman
 
 # Funcion para limpiar la pantalla
 def clear_screen():
@@ -46,81 +47,6 @@ def check_user_input_letter(letter):
             secret_word[i] = letter
     return secret_word
 
-# Representaciones del stickman según las vidas restantes
-stickman="""
-   ________
-    |/         
-    |        
-    |                 
-    |             
-    |              
-    |               
-    |___           ""","""
-   ________
-    |/   |     
-    |        
-    |                 
-    |             
-    |              
-    |               
-    |___           ""","""
-   ________
-    |/   |     
-    |   🐷    
-    |                 
-    |             
-    |              
-    |               
-    |___           ""","""
-   ________
-    |/   |     
-    |   🐷    
-    |    |            
-    |             
-    |              
-    |               
-    |___           ""","""
-   ________
-    |/   |     
-    |   🐷    
-    |   /|            
-    |             
-    |              
-    |               
-    |___           ""","""
-   ________
-    |/   |     
-    |   🐷    
-    |   /|\           
-    |             
-    |              
-    |               
-    |___           ""","""
-   ________
-    |/   |     
-    |   🐷    
-    |   /|\           
-    |    |        
-    |              
-    |               
-    |___           ""","""
-   ________
-    |/   |     
-    |   🐷    
-    |   /|\           
-    |    |        
-    |   /          
-    |               
-    |___           ""","""
-    _______
-    |/   |     
-    |   🐷    
-    |   /|\           
-    |    |        
-    |   / \        
-    |               
-    |___           """
-
 # Función para comprobar si una letra ya ha sido utilizada
 def letter_already_used(letter):
     global used_words
@@ -150,6 +76,7 @@ def run():
         if letter_already_used(valid_word):
             delay_print("You've already used that letter\n")
             sleep(1)
+            clear_screen()
             continue
         if valid_word in word:
             delay_print("Good job!\n")
@@ -174,6 +101,7 @@ def run():
             delay_print(f"\nNext word (level {level})\n")
             sleep(1)
     if lifes == 0:
+        print(stickman[(8-lifes)])
         delay_print(f"You lose! The word was {word}\n")
         sleep(1)
 
