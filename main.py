@@ -1,109 +1,157 @@
-from time import sleep
-import sys
-from os import system, name
 import random
-from stickman import stickman
+from tkinter import *
+from tkinter import messagebox
+from PIL import Image, ImageTk
 
-# Funcion para limpiar la pantalla
-def clear_screen():
-    if name == 'nt': # Si el sistema operativo es Windows
-        _ = system('cls')
-    else: # Si el sistema operativo es Mac o Linux
-        _ = system('clear')
+ventana = Tk()
+ventana.geometry("350x600")
+ventana.title("Hangman Game")
 
-# Funcion para escribir letra por letra
-def delay_print(s):
-    for c in s:
-        sys.stdout.write(c)
-        sys.stdout.flush()
-        sleep(0.02)  # Tiempo de espera estre cada letra
 
-# Funcion para validar que solo se ingresen letras en el input del usuario
-def validate_user_input_text(text): # text indica el mensaje que se mostrar junto con el input
-    while True:
-        delay_print(text)
-        letter = str(input("\n=> "))
-        if len(letter) == 1 and letter.isalpha(): # Si lo ingresado es solo 1 letra y no es nada distinto a letras el programa continua de los contrario lanza un error y vuelve a preguntar
-            return letter
-        delay_print(f"Invalid option\nPlease only enter 1 letter (A-Z)\n") # Mostrar mensaje de error y volver a preguntar
-        sleep(1)
-        continue
+def next_level():
+    for button in [button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H, button_I, button_J, button_K, button_L, button_M, button_N, button_O, button_P, button_Q, button_R, button_S, button_T, button_U, button_V, button_W, button_X, button_Y, button_Z]:
+        button["state"] = "active"
 
-# Funcion que escoge una palabra de forma aleatoria del archivo palabras.txt
+
+def imagen_hangman():
+    imagenes = [
+        "Hangman images/Hangman-07.png",
+        "Hangman images/Hangman-06.png",
+        "Hangman images/Hangman-05.png",
+        "Hangman images/Hangman-04.png",
+        "Hangman images/Hangman-03.png",
+        "Hangman images/Hangman-02.png",
+        "Hangman images/Hangman-01.png",
+    ]
+    global photo, lifes
+    image = Image.open(imagenes[lifes - 1])
+    image = image.resize((300, 300), Image.ANTIALIAS)
+    photo = ImageTk.PhotoImage(image)
+    return photo
+
+
 def choice_word(level=1):
     filenames = {
         1: "easy_words.txt",
         2: "medium_words.txt",
         3: "hard_words.txt",
     }
-    with open(filenames[level]) as f:
+    with open(filenames[level], "r") as f:
         words = f.read().split("\n")
-        return random.choice(words)
+    return random.choice(words)
 
-# Funcion que verifica si una letra ingresada por el usuario esta en la palabra seleccionada
-def check_user_input_letter(letter):
-    for i, character in enumerate(word):
-        if character == letter:
-            secret_word[i] = letter
-    return secret_word
 
-# Función para comprobar si una letra ya ha sido utilizada
-def letter_already_used(letter):
-    global used_words
-    if letter in used_words:
-        return True
-    letter = letter
-    used_words.add(letter)
-    return False
-
-# variables de la palabra escogida y la palabra secreta
 word = choice_word().lower()
 level = int(1)
-secret_word = ["_" for _ in range(len(word))]  # Utilizamos una lista de compresión para crear una lista de guiones bajos del tamaño de la palabra escogida
+lifes = 7
+# Utilizamos una lista de compresión para crear una lista de guiones bajos del tamaño de la palabra escogida
+secret_word = [" _" for _ in range(len(word))]
 used_words = set()  # Creamos un conjunto vacío para almacenar las letras usadas
 
-# Nucleo del juego
-def run():
-    global level,used_words,secret_word,word
-    lifes = 8
-    delay_print("Welcome to Hangman!\n")
-    sleep(1)
-    while lifes > 0:
-        print(stickman[(8-lifes)])
-        print("".join(secret_word))  # Unimos los caracteres de la lista secreta en una sola cadena para imprimir
-        print("Used letters:", "-".join(sorted(used_words)))  # Imprimimos las letras usadas ordenadas alfabéticamente
-        valid_word = validate_user_input_text("Please enter one letter (A-Z)")
-        if letter_already_used(valid_word):
-            delay_print("You've already used that letter\n")
-            sleep(1)
-            clear_screen()
-            continue
-        if valid_word in word:
-            delay_print("Good job!\n")
-            sleep(1)
-            check_user_input_letter(valid_word)
-        else:
-            delay_print("Wrong letter\n")
-            sleep(1)
-            lifes -= 1
-        clear_screen()
-        if "_" not in secret_word:
-            delay_print(f"You Win! The word was {word}\n")
-            sleep(1)
-            level += 1
-            if level == 4:
-                delay_print("Congratulations you are incredible!!!\n")
-                break
-            word = choice_word(level).lower()
-            secret_word = ["_" for _ in range(len(word))]
-            used_words.clear()
-            lifes = 8
-            delay_print(f"\nNext word (level {level})\n")
-            sleep(1)
-    if lifes == 0:
-        print(stickman[(8-lifes)])
-        delay_print(f"You lose! The word was {word}\n")
-        sleep(1)
 
-if __name__ == "__main__":
-    run()
+def check_user_input_letter(letter, boton):
+    global secret_word, label_2, lifes, word, level
+    if letter in word:
+        for i, character in enumerate(word):
+            if character == letter:
+                secret_word[i] = letter
+    else:
+        lifes -= 1
+        label_1.config(image=imagen_hangman())
+        if lifes == 1:
+            messagebox.showinfo("Game Over  ", f"The word was {word}")
+            ventana.quit()
+    boton.config(state="disabled")
+    label_2.config(text=" ".join(secret_word))
+    if " _" not in secret_word:
+        level += 1
+        if level == 4:
+            messagebox.showinfo(
+                "You Win!", "Congratulations you are incredible!")
+            ventana.quit()
+        else:
+            lifes = 7
+            word = choice_word(level)
+            secret_word = [" _" for _ in range(len(word))]
+            label_2.config(text=" ".join(secret_word))
+            label_1.config(image=imagen_hangman())
+            messagebox.showinfo("GOOD JOB", f"Now go to level {level}!")
+            next_level()
+
+
+Label(ventana,
+      text="Hangman",
+      font="normal 20 bold",
+      fg="blue").grid(row=0, column=0, columnspan=1, pady=10)
+
+label_1 = Label(ventana, image=imagen_hangman())
+label_2 = Label(ventana, text="".join(secret_word), font="normal 20")
+label_1.grid(row=1, column=0)
+label_2.grid(row=2, column=0, pady=10)
+
+frame1 = Frame(ventana)
+frame2 = Frame(ventana)
+frame3 = Frame(ventana)
+frame4 = Frame(ventana)
+frame5 = Frame(ventana)
+frame1.grid(row=3, column=0, columnspan=5)
+frame2.grid(row=4, column=0, columnspan=5)
+frame3.grid(row=5, column=0, columnspan=5)
+frame4.grid(row=6, column=0, columnspan=5)
+frame5.grid(row=7, column=0, columnspan=5)
+
+button_A = Button(frame1, text="A", font=10, padx=10, command=lambda: check_user_input_letter("a", button_A))
+button_B = Button(frame1, text="B", font=10, width=1, command=lambda: check_user_input_letter("b", button_B))
+button_C = Button(frame1, text="C", font=10, width=1, command=lambda: check_user_input_letter("c", button_C))
+button_D = Button(frame1, text="D", font=10, width=1, command=lambda: check_user_input_letter("d", button_D))
+button_E = Button(frame1, text="E", font=10, width=1, command=lambda: check_user_input_letter("e", button_E))
+button_F = Button(frame2, text="F", font=10, width=1, command=lambda: check_user_input_letter("f", button_F))
+button_G = Button(frame2, text="G", font=10, width=1, command=lambda: check_user_input_letter("g", button_G))
+button_H = Button(frame2, text="H", font=10, width=1, command=lambda: check_user_input_letter("h", button_H))
+button_I = Button(frame2, text="I", font=10, width=1, command=lambda: check_user_input_letter("i", button_I))
+button_J = Button(frame2, text="J", font=10, width=1, command=lambda: check_user_input_letter("j", button_J))
+button_K = Button(frame3, text="K", font=10, width=1, command=lambda: check_user_input_letter("k", button_K))
+button_L = Button(frame3, text="L", font=10, width=1, command=lambda: check_user_input_letter("l", button_L))
+button_M = Button(frame3, text="M", font=10, width=1, command=lambda: check_user_input_letter("m", button_M))
+button_N = Button(frame3, text="N", font=10, width=1, command=lambda: check_user_input_letter("n", button_N))
+button_O = Button(frame3, text="O", font=10, width=1, command=lambda: check_user_input_letter("o", button_O))
+button_P = Button(frame4, text="P", font=10, width=1, command=lambda: check_user_input_letter("p", button_P))
+button_Q = Button(frame4, text="Q", font=10, width=1, command=lambda: check_user_input_letter("q", button_Q))
+button_R = Button(frame4, text="R", font=10, width=1, command=lambda: check_user_input_letter("r", button_R))
+button_S = Button(frame4, text="S", font=10, width=1, command=lambda: check_user_input_letter("s", button_S))
+button_T = Button(frame4, text="T", font=10, width=1, command=lambda: check_user_input_letter("t", button_T))
+button_U = Button(frame5, text="U", font=10, width=1, command=lambda: check_user_input_letter("u", button_U))
+button_V = Button(frame5, text="V", font=10, width=1, command=lambda: check_user_input_letter("v", button_V))
+button_W = Button(frame5, text="W", font=10, width=1, command=lambda: check_user_input_letter("w", button_W))
+button_X = Button(frame5, text="X", font=10, width=1, command=lambda: check_user_input_letter("x", button_X))
+button_Y = Button(frame5, text="Y", font=10, width=1, command=lambda: check_user_input_letter("y", button_Y))
+button_Z = Button(frame5, text="Z", font=10, width=1, command=lambda: check_user_input_letter("z", button_Z))
+
+button_A.pack(side=LEFT, padx=5)
+button_B.pack(side=LEFT, padx=5)
+button_C.pack(side=LEFT, padx=5)
+button_D.pack(side=LEFT, padx=5)
+button_E.pack(side=LEFT, padx=5)
+button_F.pack(side=LEFT, padx=5)
+button_G.pack(side=LEFT, padx=5)
+button_H.pack(side=LEFT, padx=5)
+button_I.pack(side=LEFT, padx=5)
+button_J.pack(side=LEFT, padx=5)
+button_K.pack(side=LEFT, padx=5)
+button_L.pack(side=LEFT, padx=5)
+button_M.pack(side=LEFT, padx=5)
+button_N.pack(side=LEFT, padx=5)
+button_O.pack(side=LEFT, padx=5)
+button_P.pack(side=LEFT, padx=5)
+button_Q.pack(side=LEFT, padx=5)
+button_R.pack(side=LEFT, padx=5)
+button_S.pack(side=LEFT, padx=5)
+button_T.pack(side=LEFT, padx=5)
+button_U.pack(side=LEFT, padx=5)
+button_V.pack(side=LEFT, padx=5)
+button_W.pack(side=LEFT, padx=5)
+button_X.pack(side=LEFT, padx=5)
+button_Y.pack(side=LEFT, padx=5)
+button_Z.pack(side=LEFT, padx=7)
+
+ventana.mainloop()
