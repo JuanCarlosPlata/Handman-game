@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/windows,macos,linux,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,macos,linux,python
-
+__pycache__
+prueba_final.py
+prueba.py
 ### Linux ###
 *~
 

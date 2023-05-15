@@ -1,27 +1,50 @@
 # Importamos las librerías necesarias
 import random
-from tkinter import *
+import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
-# Creamos una ventana
-ventana_principal = Tk()
+#funciones
 
+def bind_keyboard_buttons():
+    # Creamos un diccionario que mapea las teclas del teclado con los botones correspondientes
+    keyboard_buttons = {
+        "a": button_A,
+        "b": button_B,
+        "c": button_C,
+        "d": button_D,
+        "e": button_E,
+        "f": button_F,
+        "g": button_G,
+        "h": button_H,
+        "i": button_I,
+        "j": button_J,
+        "k": button_K,
+        "l": button_L,
+        "m": button_M,
+        "n": button_N,
+        "o": button_O,
+        "p": button_P,
+        "q": button_Q,
+        "r": button_R,
+        "s": button_S,
+        "t": button_T,
+        "u": button_U,
+        "v": button_V,
+        "w": button_W,
+        "x": button_X,
+        "y": button_Y,
+        "z": button_Z
+    }
+    # Asociamos las teclas del teclado a la función check_user_input_letter
+    for key, button in keyboard_buttons.items():
+        ventana_principal.bind(key, lambda event, btn=button: check_user_input_letter(event.char, btn))
 
-
-# Establecemos la geometría de la ventana y su título
-ventana_principal.attributes('-alpha', True)
-ventana_principal.geometry("350x600")
-ventana_principal.title("Hangman Game")
-
-# Creamos una imagen de fondo
-fondo = Image.open("Hangman images/fondo.jpg")
-fondo = fondo.resize((350, 600), Image.ANTIALIAS)
-fondo = ImageTk.PhotoImage(fondo)
-
-# Creamos una etiqueta de imagen y establecemos la imagen de fondo en ella
-label_fondo = Label(ventana_principal, image=fondo)
-label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+def set_canvas_background():
+    img = Image.open("Hangman images/fondo.jpg")
+    img = img.resize((350, 600), Image.LANCZOS)
+    background = ImageTk.PhotoImage(img)
+    return background
 
 # Definimos una función que activa todos los botones
 def enable_all_buttons():
@@ -30,7 +53,8 @@ def enable_all_buttons():
         button["state"] = "active"
 
 # Definimos una función que carga la imagen correspondiente al número de vidas que quedan
-def update_hangman_image():
+def update_hangman_image(lifes):
+    global hangman_image  # Variable global para almacenar la imagen de ahorcado
     # Creamos una lista con las rutas de las imágenes de ahorcado
     imagenes = [
         "Hangman images/Hangman-07.png",
@@ -42,11 +66,9 @@ def update_hangman_image():
         "Hangman images/Hangman-01.png",
     ]
     # Accedemos a la variable global de vidas y cargamos la imagen correspondiente
-    global hangman_image, lifes
     image = Image.open(imagenes[lifes - 1])
-    image = image.resize((300, 300), Image.ANTIALIAS)
+    image = image.resize((300, 300), Image.LANCZOS)
     hangman_image = ImageTk.PhotoImage(image)
-    return hangman_image
 
 # Definimos una función que escoge una palabra al azar del archivo correspondiente al nivel indicado
 def get_random_word(level=1):
@@ -62,16 +84,13 @@ def get_random_word(level=1):
     # Escogemos una palabra al azar de la lista y la convertimos a minúsculas
     return random.choice(words)
 
-# Escogemos una palabra al azar para empezar el juego y establecemos el nivel y las vidas iniciales
-secret_word = get_random_word().lower()
-level = int(1)
-lifes = 7
-# Creamos una lista de guiones bajos del tamaño de la palabra escogida
-hidden_word = [" _" for _ in range(len(secret_word))]
-
 # Definimos una función que verifica si la letra escogida por el usuario está en la palabra secreta
 def check_user_input_letter(letter, boton):
-    global hidden_word, label_hidden_word, lifes, secret_word, level
+    global hidden_word, lifes, secret_word, level, pressed_keys
+    # Verificamos si la tecla ya ha sido presionada anteriormente
+    if letter in pressed_keys:
+        return  # Salir de la función si la tecla ya ha sido presionada
+    pressed_keys.add(letter)  # Agregar la tecla al conjunto de teclas presionadas
     # Si la letra está en la palabra secreta, reemplazamos los guiones bajos correspondientes por la letra
     if letter in secret_word:
         for i, character in enumerate(secret_word):
@@ -80,7 +99,8 @@ def check_user_input_letter(letter, boton):
     else:
         # Si la letra no está en la palabra secreta, disminuimos el número de vidas restantes y mostramos la imagen correspondiente
         lifes -= 1
-        label_hangman.config(image=update_hangman_image())
+        update_hangman_image(lifes)
+        canvas.itemconfigure("hangman_imagen", image=hangman_image)
         # Si el usuario se queda sin vidas, se muestra un mensaje indicando que el juego ha terminado
         if lifes == 1:
             messagebox.showinfo("Game Over  ", f"The word was {secret_word}")
@@ -88,7 +108,7 @@ def check_user_input_letter(letter, boton):
     # Desactivamos el botón correspondiente a la letra seleccionada
     boton.config(state="disabled")
     # Actualizamos la etiqueta que muestra la palabra secreta con los guiones bajos y las letras adivinadas
-    label_hidden_word.config(text=" ".join(hidden_word))
+    canvas.itemconfigure("secret_word",text="".join(hidden_word))
     # Verificamos si el usuario ha adivinado todas las letras de la palabra secreta, en cuyo caso pasamos al siguiente nivel
     if " _" not in hidden_word:
         level += 1
@@ -99,90 +119,66 @@ def check_user_input_letter(letter, boton):
             ventana_principal.quit()
         # Si el usuario no ha pasado el nivel 3, se carga una nueva palabra y se reinicia el número de vidas restantes
         else:
+            pressed_keys = set()
             lifes = 7
             secret_word = get_random_word(level)
             hidden_word = [" _" for _ in range(len(secret_word))]
-            label_hidden_word.config(text=" ".join(hidden_word))
-            label_hangman.config(image=update_hangman_image())
+            canvas.itemconfigure("secret_word",text="".join(hidden_word))
+            update_hangman_image(lifes)
+            canvas.itemconfigure("hangman_imagen",image=hangman_image)
             messagebox.showinfo("GOOD JOB", f"Now go to level {level}!")
             # Se activan todos los botones para la siguiente palabra
             enable_all_buttons()
 
+    #variables
+secret_word = get_random_word().lower()
+level = int(1)
+lifes = 7
+hidden_word = [" _" for _ in range(len(secret_word))]
+pressed_keys = set()
 
-Label(ventana_principal,
-      text="Hangman",
-      font="normal 20 bold",
-      fg="blue").grid(row=0, column=0, columnspan=1, pady=10)
+# Creamos una ventana
+ventana_principal = tk.Tk()
 
+# Establecemos la geometría de la ventana y su título
+canvas = tk.Canvas(ventana_principal, bg="white", width=350, height=600)
+# Creamos una imagen de fondo
+fondo = set_canvas_background()
+# Creamos una etiqueta de imagen y establecemos la imagen de fondo en ella
+canvas_fondo = canvas.create_image(0,0, image=fondo, anchor="nw",tags="fondo")
+# Escogemos una palabra al azar para empezar el juego y establecemos el nivel y las vidas iniciales
+update_hangman_image(lifes)
+canvas_hangman = canvas.create_image(20, 150, image=hangman_image, anchor="nw", tags="hangman_imagen")
+canvas.create_text(65, 10, text="HANGMAN", font=("Impact", 30), anchor="nw", fill="black")
+canvas.create_text(130, 145, text="".join(hidden_word), font=("Arial", 18, "bold"), anchor="nw", fill="black", tags="secret_word")
 
-label_hangman = Label(ventana_principal, image=update_hangman_image())
-label_hidden_word = Label(ventana_principal, text="".join(hidden_word), font="normal 20")
-label_hangman.grid(row=1, column=0)
-label_hidden_word.grid(row=2, column=0, pady=10)
+button_A = tk.Button(command=lambda: check_user_input_letter("a", button_A))
+button_B = tk.Button(command=lambda: check_user_input_letter("b", button_B))
+button_C = tk.Button(command=lambda: check_user_input_letter("c", button_C))
+button_D = tk.Button(command=lambda: check_user_input_letter("d", button_D))
+button_E = tk.Button(command=lambda: check_user_input_letter("e", button_E))
+button_F = tk.Button(command=lambda: check_user_input_letter("f", button_F))
+button_G = tk.Button(command=lambda: check_user_input_letter("g", button_G))
+button_H = tk.Button(command=lambda: check_user_input_letter("h", button_H))
+button_I = tk.Button(command=lambda: check_user_input_letter("i", button_I))
+button_J = tk.Button(command=lambda: check_user_input_letter("j", button_J))
+button_K = tk.Button(command=lambda: check_user_input_letter("k", button_K))
+button_L = tk.Button(command=lambda: check_user_input_letter("l", button_L))
+button_M = tk.Button(command=lambda: check_user_input_letter("m", button_M))
+button_N = tk.Button(command=lambda: check_user_input_letter("n", button_N))
+button_O = tk.Button(command=lambda: check_user_input_letter("o", button_O))
+button_P = tk.Button(command=lambda: check_user_input_letter("p", button_P))
+button_Q = tk.Button(command=lambda: check_user_input_letter("q", button_Q))
+button_R = tk.Button(command=lambda: check_user_input_letter("r", button_R))
+button_S = tk.Button(command=lambda: check_user_input_letter("s", button_S))
+button_T = tk.Button(command=lambda: check_user_input_letter("t", button_T))
+button_U = tk.Button(command=lambda: check_user_input_letter("u", button_U))
+button_V = tk.Button(command=lambda: check_user_input_letter("v", button_V))
+button_W = tk.Button(command=lambda: check_user_input_letter("w", button_W))
+button_X = tk.Button(command=lambda: check_user_input_letter("x", button_X))
+button_Y = tk.Button(command=lambda: check_user_input_letter("y", button_Y))
+button_Z = tk.Button(command=lambda: check_user_input_letter("z", button_Z))
+canvas.pack()
 
-frame_buttons_1 = Frame(ventana_principal)
-frame_buttons_2 = Frame(ventana_principal)
-frame_buttons_3 = Frame(ventana_principal)
-frame_buttons_4 = Frame(ventana_principal)
-frame_buttons_5 = Frame(ventana_principal)
-frame_buttons_1.grid(row=3, column=0, columnspan=5)
-frame_buttons_2.grid(row=4, column=0, columnspan=5)
-frame_buttons_3.grid(row=5, column=0, columnspan=5)
-frame_buttons_4.grid(row=6, column=0, columnspan=5)
-frame_buttons_5.grid(row=7, column=0, columnspan=5)
-
-button_A = Button(frame_buttons_1, text="A", font=10, width=1, command=lambda: check_user_input_letter("a", button_A))
-button_B = Button(frame_buttons_1, text="B", font=10, width=1, command=lambda: check_user_input_letter("b", button_B))
-button_C = Button(frame_buttons_1, text="C", font=10, width=1, command=lambda: check_user_input_letter("c", button_C))
-button_D = Button(frame_buttons_1, text="D", font=10, width=1, command=lambda: check_user_input_letter("d", button_D))
-button_E = Button(frame_buttons_1, text="E", font=10, width=1, command=lambda: check_user_input_letter("e", button_E))
-button_F = Button(frame_buttons_2, text="F", font=10, width=1, command=lambda: check_user_input_letter("f", button_F))
-button_G = Button(frame_buttons_2, text="G", font=10, width=1, command=lambda: check_user_input_letter("g", button_G))
-button_H = Button(frame_buttons_2, text="H", font=10, width=1, command=lambda: check_user_input_letter("h", button_H))
-button_I = Button(frame_buttons_2, text="I", font=10, width=1, command=lambda: check_user_input_letter("i", button_I))
-button_J = Button(frame_buttons_2, text="J", font=10, width=1, command=lambda: check_user_input_letter("j", button_J))
-button_K = Button(frame_buttons_3, text="K", font=10, width=1, command=lambda: check_user_input_letter("k", button_K))
-button_L = Button(frame_buttons_3, text="L", font=10, width=1, command=lambda: check_user_input_letter("l", button_L))
-button_M = Button(frame_buttons_3, text="M", font=10, width=1, command=lambda: check_user_input_letter("m", button_M))
-button_N = Button(frame_buttons_3, text="N", font=10, width=1, command=lambda: check_user_input_letter("n", button_N))
-button_O = Button(frame_buttons_3, text="O", font=10, width=1, command=lambda: check_user_input_letter("o", button_O))
-button_P = Button(frame_buttons_4, text="P", font=10, width=1, command=lambda: check_user_input_letter("p", button_P))
-button_Q = Button(frame_buttons_4, text="Q", font=10, width=1, command=lambda: check_user_input_letter("q", button_Q))
-button_R = Button(frame_buttons_4, text="R", font=10, width=1, command=lambda: check_user_input_letter("r", button_R))
-button_S = Button(frame_buttons_4, text="S", font=10, width=1, command=lambda: check_user_input_letter("s", button_S))
-button_T = Button(frame_buttons_4, text="T", font=10, width=1, command=lambda: check_user_input_letter("t", button_T))
-button_U = Button(frame_buttons_5, text="U", font=10, width=1, command=lambda: check_user_input_letter("u", button_U))
-button_V = Button(frame_buttons_5, text="V", font=10, width=1, command=lambda: check_user_input_letter("v", button_V))
-button_W = Button(frame_buttons_5, text="W", font=10, width=1, command=lambda: check_user_input_letter("w", button_W))
-button_X = Button(frame_buttons_5, text="X", font=10, width=1, command=lambda: check_user_input_letter("x", button_X))
-button_Y = Button(frame_buttons_5, text="Y", font=10, width=1, command=lambda: check_user_input_letter("y", button_Y))
-button_Z = Button(frame_buttons_5, text="Z", font=10, width=1, command=lambda: check_user_input_letter("z", button_Z))
-
-button_A.pack(side=LEFT, padx=5,)
-button_B.pack(side=LEFT, padx=5)
-button_C.pack(side=LEFT, padx=5)
-button_D.pack(side=LEFT, padx=5)
-button_E.pack(side=LEFT, padx=5)
-button_F.pack(side=LEFT, padx=5)
-button_G.pack(side=LEFT, padx=5)
-button_H.pack(side=LEFT, padx=5)
-button_I.pack(side=LEFT, padx=5)
-button_J.pack(side=LEFT, padx=5)
-button_K.pack(side=LEFT, padx=5)
-button_L.pack(side=LEFT, padx=5)
-button_M.pack(side=LEFT, padx=5)
-button_N.pack(side=LEFT, padx=5)
-button_O.pack(side=LEFT, padx=5)
-button_P.pack(side=LEFT, padx=5)
-button_Q.pack(side=LEFT, padx=5)
-button_R.pack(side=LEFT, padx=5)
-button_S.pack(side=LEFT, padx=5)
-button_T.pack(side=LEFT, padx=5)
-button_U.pack(side=LEFT, padx=5)
-button_V.pack(side=LEFT, padx=5)
-button_W.pack(side=LEFT, padx=5)
-button_X.pack(side=LEFT, padx=5)
-button_Y.pack(side=LEFT, padx=5)
-button_Z.pack(side=LEFT, padx=7)
-
+bind_keyboard_buttons()
 ventana_principal.mainloop()
