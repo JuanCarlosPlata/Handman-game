@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog
 from PIL import Image, ImageTk
 
+
+
 def bind_keyboard_buttons():
     for key in "abcdefghijklmnopqrstuvwxyz":
         ventana_principal.bind(key, lambda event, key=key: check_user_input_letter(key))
@@ -90,8 +92,6 @@ ronda = 1
 lifes = 7
 hidden_word = [" _" for _ in range(len(secret_word))]
 pressed_keys = []
-ventana_principal = tk.Tk()
-ventana_principal.resizable(False, False)
 ventana_principal.title("Hangman Game")
 ventana_principal.tk.call('wm', 'iconphoto', ventana_principal._w, tk.PhotoImage(file="images/hangman-game.png"))
 canvas = tk.Canvas(ventana_principal, bg="white", width=350, height=600)
